@@ -196,10 +196,15 @@ mv $PULL_SECRET_PATH/pull-secret-new.json $PULL_SECRET_PATH/pull-secret.json
 echo "Successfully updated secret with local registry details"
 
 ## Setting Docker / Containers authorization
+echo "Setting Podman and Docker authorizations to use pull-secret"
 XDG_RUNTIME_DIR=echo "$XDG_RUNTIME_DIR"
-echo $XDG_RUNTIME_DIR
+#echo $XDG_RUNTIME_DIR
 mkdir $XDG_RUNTIME_DIR/containers
 cp $PULL_SECRET_PATH/pull-secret.json $XDG_RUNTIME_DIR/containers/auth.json
+mkdir ~/.docker
+cp $PULL_SECRET_PATH/pull-secret.json ~/.docker/config.json
+echo "successfully updated Podman and Docker authorizations to use pull-secret"
+
 
 echo ""
 echo "Creating imageset-config.yaml in $LOCAL_DIR/registry"
