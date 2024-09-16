@@ -23,7 +23,7 @@ ARCHITECTURE="x86_64"
 ##############################################################
 ## OPENSHIFT VERSION TO DOWNLOAD
 OCP_VERSION=4.16
-OCP_RELEASE=4.16.4
+OCP_RELEASE=4.16.10
 
 ## NAME OF THE DIRECTORY TO DOWNLOAD THE REQUIRED FILES
 LOCAL_DIR="/data"
@@ -81,8 +81,11 @@ cd $LOCAL_DIR/registry/downloads/tools/
 rm -f $LOCAL_DIR/registry/downloads/tools/*.tar.gz
 
 wget $OCP_URL/clients/butane/latest/butane --no-check-certificate
-wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-client-linux-$OCP_RELEASE.tar.gz --no-check-certificate
-wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-install-linux-$OCP_RELEASE.tar.gz --no-check-certificate
+wget $OCP_URL/x86_64/clients/ocp/$OCP_RELEASE/openshift-client-linux-$OCP_RELEASE.tar.gz --no-check-certificate
+wget $OCP_URL/x86_64/clients/ocp/$OCP_RELEASE/openshift-install-linux-$OCP_RELEASE.tar.gz --no-check-certificate
+## IGNORE BELOW URLS
+#wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-client-linux-$OCP_RELEASE.tar.gz --no-check-certificate
+#wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-install-linux-$OCP_RELEASE.tar.gz --no-check-certificate
 
 # TO SETUP quay.io local registry in registry server
 echo ""
