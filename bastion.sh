@@ -249,17 +249,17 @@ mirror:
 EOF
 echo "Successfully created imageset-config.yaml in $LOCAL_DIR/registry"
 
+## Change to directory so that workspace is created
 echo ""
-echo "Executing the registry mirroring from quay.io to $LOCAL_REGISTRY_SERVER_NAME:8443"
-
+echo ""
+cd $LOCAL_DIR
 ## Below command is tested in Customer env. Before enabling this command, make sure local registry ssl.key and ssl.certs are uploaded
 oc_mirror_cmd="oc mirror --config=$LOCAL_DIR/registry/imageset-config.yaml docker://$LOCAL_REGISTRY_SERVER_NAME:8443 --dest-skip-tls"
-
-echo ""
-echo ""
 echo "Starting to mirror ${OCP_RELEASE}-${ARCHITECTURE} from  quay.io to ${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}"
+
 ## NOTE: Below command is not required. Above one worked 
 #oc_mirror_cmd="oc adm release mirror -a ${PULL_SECRET_PATH}/pull-secret.json --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME} --to-release-image=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run"
 oc_mirror_output=`$oc_mirror_cmd`
+
 echo $oc_mirror_output
 echo "Successfully completed to mirror ${OCP_RELEASE}-${ARCHITECTURE} from  quay.io to ${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}"
