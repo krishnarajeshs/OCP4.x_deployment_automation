@@ -23,7 +23,7 @@ ARCHITECTURE="x86_64"
 ##############################################################
 ## OPENSHIFT VERSION TO DOWNLOAD
 OCP_VERSION=4.16
-OCP_RELEASE=4.16.11
+OCP_RELEASE=4.16.4
 
 ## NAME OF THE DIRECTORY TO DOWNLOAD THE REQUIRED FILES
 LOCAL_DIR="/data"
@@ -80,17 +80,17 @@ echo "Downloading required OCP Pacakges - $LOCAL_DIR/registry/downloads/tools/"
 cd $LOCAL_DIR/registry/downloads/tools/
 rm -f $LOCAL_DIR/registry/downloads/tools/*.tar.gz
 
-wget $OCP_URL/clients/butane/latest/butane
-wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-client-linux-$OCP_RELEASE.tar.gz
-wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-install-linux-$OCP_RELEASE.tar.gz
+wget $OCP_URL/clients/butane/latest/butane --no-check-certificate
+wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-client-linux-$OCP_RELEASE.tar.gz --no-check-certificate
+wget $OCP_URL/x86_64/clients/ocp/latest-$OCP_VERSION/openshift-install-linux-$OCP_RELEASE.tar.gz --no-check-certificate
 
 # TO SETUP quay.io local registry in registry server
 echo ""
 echo "Downloading oc-mirror to setup quay in registry server ($LOCAL_REGISTRY_SERVER_NAME)"
-wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/$OCP_RELEASE/oc-mirror.tar.gz
+wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/$OCP_RELEASE/oc-mirror.tar.gz --no-check-certificate
 
  Mirror registry binary - THIS HAS TO BE INSTALLED IN REGISTRY SERVER  
-wget https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz
+wget https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz --no-check-certificate
 
 ## Unpacking the downloaded packages
 echo ""
@@ -169,7 +169,7 @@ echo ""
 echo "Downloading $LOCAL_REGISTRY_SERVER_NAME default certificates"
 #openssl s_client -showcerts -connect registry.ocp4.homelab.local:8443 </dev/null 2>/dev/null |openssl x509 -outform PEM >"$LOCAL_DIR/registry/certs/registry_defaultca.pem"
 cd $LOCAL_DIR/registry/certs/
-openssl s_client -showcerts -verify 5 -connect registry.ocp4.homelab.local:8443  < /dev/null | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="registry_cert"a".pem"; print >out}'
+openssl s_client -showcerts -verify 5 -connect $LOCAL_REGISTRY_SERVER_NAME  < /dev/null | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="registry_cert"a".pem"; print >out}'
 echo "Successfully $LOCAL_REGISTRY_SERVER_NAME default certificates"
 
 echo "Adding $LOCAL_DIR/registry/certs/registry_defaultca.crt to Bastion host trust store.."
@@ -219,6 +219,7 @@ mirror:
       minVersion: $OCP_RELEASE
       maxVersion: $OCP_RELEASE
       shortestPath: true
+    graph: true
   operators:
   - catalog: registry.redhat.io/redhat/redhat-operator-index:v$OCP_VERSION
     packages:
@@ -243,13 +244,14 @@ echo "Successfully created imageset-config.yaml in $LOCAL_DIR/registry"
 echo ""
 echo "Executing the registry mirroring from quay.io to $LOCAL_REGISTRY_SERVER_NAME:8443"
 
-## Below command is not working
-#oc_mirror_cmd="oc mirror --config=$LOCAL_DIR/registry/imageset-config.yaml docker://$LOCAL_REGISTRY_SERVER_NAME:8443 --dest-skip-tls"
+## Below command is tested in Customer env. Before enabling this command, make sure local registry ssl.key and ssl.certs are uploaded
+oc_mirror_cmd="oc mirror --config=$LOCAL_DIR/registry/imageset-config.yaml docker://$LOCAL_REGISTRY_SERVER_NAME:8443 --dest-skip-tls"
 
 echo ""
 echo ""
 echo "Starting to mirror ${OCP_RELEASE}-${ARCHITECTURE} from  quay.io to ${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}"
-oc_mirror_cmd="oc adm release mirror -a ${PULL_SECRET_PATH}/pull-secret.json --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME} --to-release-image=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run"
+## NOTE: Below command is not required. Above one worked 
+#oc_mirror_cmd="oc adm release mirror -a ${PULL_SECRET_PATH}/pull-secret.json --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME} --to-release-image=${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run"
 oc_mirror_output=`$oc_mirror_cmd`
 echo $oc_mirror_output
 echo "Successfully completed to mirror ${OCP_RELEASE}-${ARCHITECTURE} from  quay.io to ${LOCAL_REGISTRY_SERVER_NAME}/${LOCAL_REPOSITORY_NAME}"
